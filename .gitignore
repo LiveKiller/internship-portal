@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Uploaded files
+app/uploads/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
