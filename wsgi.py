@@ -1,7 +1,7 @@
-from app import create_app
+from app import app
 
 # Create the application instance
-application = create_app()
+application = app
 # For compatibility with both gunicorn and Flask
 app = application
 

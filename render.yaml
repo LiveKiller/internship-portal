@@ -4,7 +4,7 @@ services:
     env: python
     region: singapore  # Choose the closest region to your users
     buildCommand: chmod +x setup.sh && ./setup.sh
-    startCommand: gunicorn --chdir /opt/render/project/src wsgi:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -15,6 +15,6 @@ services:
       - key: UPLOAD_FOLDER
         value: /opt/render/project/src/app/uploads
       - key: FLASK_APP
-        value: wsgi:app
+        value: app:app
       - key: PORT
         value: 10000
