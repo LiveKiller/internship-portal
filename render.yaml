@@ -2,8 +2,9 @@ services:
   - type: web
     name: internship-portal-backend
     env: python
+    region: singapore  # Choose the closest region to your users
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -15,3 +16,5 @@ services:
         value: /opt/render/project/src/app/uploads
       - key: FLASK_APP
         value: wsgi:app
+      - key: PORT
+        value: 10000
