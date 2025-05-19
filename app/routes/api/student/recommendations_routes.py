@@ -5,9 +5,9 @@ import re
 
 from app import db
 
-recommendations_bp = Blueprint('recommendations', __name__)
+recommendation_bp = Blueprint('recommendations', __name__)
 
-@recommendations_bp.route('/companies', methods=['GET'])
+@recommendation_bp.route('/companies', methods=['GET'])
 @jwt_required()
 def get_recommended_companies():
     """Get recommended companies based on user skills and interests."""
@@ -109,7 +109,7 @@ def get_recommended_companies():
         'recommendation_type': 'personalized'
     }), 200
 
-@recommendations_bp.route('/similar-companies/<company_id>', methods=['GET'])
+@recommendation_bp.route('/similar-companies/<company_id>', methods=['GET'])
 @jwt_required()
 def get_similar_companies(company_id):
     """Get companies similar to the specified company."""
@@ -157,7 +157,7 @@ def get_similar_companies(company_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@recommendations_bp.route('/trending', methods=['GET'])
+@recommendation_bp.route('/trending', methods=['GET'])
 @jwt_required()
 def get_trending_companies():
     """Get trending companies based on application count and recency."""

@@ -5,9 +5,9 @@ from datetime import datetime
 
 from app import db
 
-messages_bp = Blueprint('messages', __name__)
+message_bp = Blueprint('messages', __name__)
 
-@messages_bp.route('/', methods=['GET'])
+@message_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_all_messages():
     """Get all messages for the current user."""
@@ -29,7 +29,7 @@ def get_all_messages():
         'messages': messages
     }), 200
 
-@messages_bp.route('/<message_id>', methods=['GET'])
+@message_bp.route('/<message_id>', methods=['GET'])
 @jwt_required()
 def get_message(message_id):
     """Get a specific message by ID."""
@@ -70,7 +70,7 @@ def get_message(message_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@messages_bp.route('/', methods=['POST'])
+@message_bp.route('/', methods=['POST'])
 @jwt_required()
 def send_message():
     """Send a new message."""
@@ -108,7 +108,7 @@ def send_message():
     else:
         return jsonify({'error': 'Failed to send message'}), 500
 
-@messages_bp.route('/<message_id>', methods=['DELETE'])
+@message_bp.route('/<message_id>', methods=['DELETE'])
 @jwt_required()
 def delete_message(message_id):
     """Delete a message."""
