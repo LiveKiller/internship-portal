@@ -1,248 +1,191 @@
-import requests
-import json
 import os
-import time
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import pytest
 import random
 import string
+from app import create_app
 
-# API Testing Configuration
-BASE_URL = "http://localhost:5000"  # Update if using a different host/port
-TEST_USER = {
-    "registration_no": "231302050",
-    "email": "test@example.com",
-    "name": "Test User",
-    "mobile_no": "9876543210"
-}
-access_token = None  # Will be set after login
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config['TESTING'] = True
+    return app
 
-def random_string(length=10):
-    """Generate a random string of fixed length."""
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
-def print_test_result(test_name, response):
-    """Print test result in a formatted way."""
-    print(f"\n=== {test_name} ===")
-    print(f"Status Code: {response.status_code}")
-    try:
-        print(f"Response: {json.dumps(response.json(), indent=2)}")
-    except:
-        print(f"Response: {response.text}")
-    
-    if 200 <= response.status_code < 300:
-        print("✅ Test Passed")
-    else:
-        print("❌ Test Failed")
+def random_digits(n):
+    return ''.join(random.choice(string.digits) for _ in range(n))
 
-def test_signup():
-    """Test user signup."""
-    url = f"{BASE_URL}/auth/signup"
-    response = requests.post(url, json=TEST_USER)
-    print_test_result("Signup Test", response)
-    return response
 
-def test_login():
-    """Test user login."""
-    global access_token
-    
-    url = f"{BASE_URL}/auth/login"
-    response = requests.post(url, json={"registration_no": TEST_USER["registration_no"]})
-    print_test_result("Login Test", response)
-    
-    if response.status_code == 200:
-        access_token = response.json().get("access_token")
-        print(f"Access token: {access_token}")
-    
-    return response
+def test_index(client):
+    rv = client.get('/')
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data['status'] == 'running'
 
-def test_authentication_check():
-    """Test authentication check."""
-    url = f"{BASE_URL}/auth/check-auth"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Authentication Check Test", response)
-    return response
 
-def test_get_dashboard():
-    """Test getting dashboard data."""
-    url = f"{BASE_URL}/api/dashboard/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Get Dashboard Test", response)
-    return response
+def test_debug(client):
+    rv = client.get('/api/debug')
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data['status'] == 'success'
+    assert 'database_name' in data['debug_info']
 
-def test_get_profile():
-    """Test getting user profile."""
-    url = f"{BASE_URL}/api/profile/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Get Profile Test", response)
-    return response
 
-def test_update_profile():
-    """Test updating user profile."""
-    url = f"{BASE_URL}/api/profile/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    updated_data = {
-        "name": "Updated Test User",
-        "specialization": "Computer Science",
-        "education": {
-            "tenth": 85.5,
-            "twelfth": 90.0,
-            "graduation": "B.Tech in CSE"
-        }
-    }
-    
-    response = requests.put(url, json=updated_data, headers=headers)
-    print_test_result("Update Profile Test", response)
-    return response
+def test_signup_missing_fields(client):
+    rv = client.post('/api/auth/signup', json={})
+    assert rv.status_code == 400
+    data = rv.get_json()
+    assert 'error' in data
 
-def test_add_experience():
-    """Test adding work experience."""
-    url = f"{BASE_URL}/api/profile/add-experience"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    experience_data = {
-        "job_title": "Software Developer Intern",
-        "company_name": "Tech Company",
-        "start_date": "2023-05-01",
-        "end_date": "2023-08-31",
-        "description": "Worked on web development projects",
-        "skills": ["Python", "JavaScript", "React"]
-    }
-    
-    response = requests.post(url, json=experience_data, headers=headers)
-    print_test_result("Add Experience Test", response)
-    return response
 
-def test_add_project():
-    """Test adding a project."""
-    url = f"{BASE_URL}/api/profile/add-project"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    project_data = {
-        "project_name": "Student Portal",
-        "project_description": "A web application for student management",
-        "project_link": "https://github.com/test/student-portal"
-    }
-    
-    response = requests.post(url, json=project_data, headers=headers)
-    print_test_result("Add Project Test", response)
-    return response
+def test_signup_and_login(client):
+    reg_no = random_digits(9)
+    email = f"{random_digits(6)}@test.com"
+    password = "Password1"
+    # Signup
+    rv = client.post('/api/auth/signup', json={
+        'registration_no': reg_no,
+        'email': email,
+        'password': password
+    })
+    assert rv.status_code == 201
+    data = rv.get_json()
+    assert 'access_token' in data
 
-def test_update_skills():
-    """Test updating skills."""
-    url = f"{BASE_URL}/api/profile/update-skills"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    skills_data = {
-        "technical": ["Python", "Flask", "MongoDB", "JavaScript", "Vue.js"],
-        "non_technical": ["Communication", "Teamwork", "Problem Solving"]
-    }
-    
-    response = requests.put(url, json=skills_data, headers=headers)
-    print_test_result("Update Skills Test", response)
-    return response
+    # Login
+    rv = client.post('/api/auth/login', json={
+        'email_id': email,
+        'password': password
+    })
+    assert rv.status_code == 200
+    data = rv.get_json()
+    token = data.get('access_token')
+    assert token
 
-def test_add_certification():
-    """Test adding a certification."""
-    url = f"{BASE_URL}/api/profile/add-certification"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    certification_data = {
-        "certificate_name": "Web Development Bootcamp",
-        "institute_name": "Udemy",
-        "verification_link": "https://udemy.com/certificate/123456"
-    }
-    
-    response = requests.post(url, json=certification_data, headers=headers)
-    print_test_result("Add Certification Test", response)
-    return response
 
-def test_get_portfolio():
-    """Test getting portfolio data."""
-    url = f"{BASE_URL}/api/portfolio/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Get Portfolio Test", response)
-    return response
+def test_admin_login_and_dashboard(client):
+    # Admin login
+    rv = client.post('/api/admin/login', json={
+        'username': 'savi@admin',
+        'password': 'admin@savi'
+    })
+    assert rv.status_code == 200
+    token = rv.get_json().get('access_token')
+    assert token
+    # Access dashboard
+    rv = client.get('/api/admin/dashboard', headers={
+        'Authorization': f'Bearer {token}'
+    })
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert 'stats' in data 
 
-def test_public_portfolio():
-    """Test getting public portfolio."""
-    url = f"{BASE_URL}/api/portfolio/public/{TEST_USER['registration_no']}"
-    response = requests.get(url)
-    print_test_result("Get Public Portfolio Test", response)
-    return response
+def test_admin_token_fixture(client):
+    # Ensure admin_token fixture works
+    rv = client.post('/api/admin/login', json={'username': 'savi@admin', 'password': 'admin@savi'})
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert 'access_token' in data
 
-def test_get_all_announcements():
-    """Test getting all announcements."""
-    url = f"{BASE_URL}/api/announcement/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Get All Announcements Test", response)
-    return response
+@pytest.fixture
+def admin_token(client):
+    rv = client.post('/api/admin/login', json={'username': 'savi@admin', 'password': 'admin@savi'})
+    return rv.get_json()['access_token']
 
-def test_send_message():
-    """Test sending a message."""
-    url = f"{BASE_URL}/api/messages/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    message_data = {
-        "recipient_id": "admin",  # Usually would be another user's registration number
-        "subject": "Test Message",
-        "content": "This is a test message content."
-    }
-    
-    response = requests.post(url, json=message_data, headers=headers)
-    print_test_result("Send Message Test", response)
-    return response
+@pytest.fixture
+def student_credentials(client):
+    reg_no = random_digits(9)
+    email = f"{random_digits(6)}@test.com"
+    password = "Password1"
+    # signup
+    rv = client.post('/api/auth/signup', json={
+        'registration_no': reg_no,
+        'email': email,
+        'password': password
+    })
+    assert rv.status_code == 201
+    token = rv.get_json()['access_token']
+    return {'reg_no': reg_no, 'token': token}
 
-def test_get_all_messages():
-    """Test getting all messages."""
-    url = f"{BASE_URL}/api/messages/"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    print_test_result("Get All Messages Test", response)
-    return response
+def test_full_company_and_application_flow(client, admin_token, student_credentials):
+    # Admin creates a company
+    headers_admin = {'Authorization': f'Bearer {admin_token}'}
+    rv = client.post('/api/admin/companies', json={'name': 'TestCo', 'job_title': 'Engineer'}, headers=headers_admin)
+    assert rv.status_code == 201
+    company = rv.get_json()['company']
+    cid = company['_id']
 
-def run_tests():
-    """Run all API tests."""
-    print("\n========== STARTING API TESTS ==========\n")
-    
-    # Authentication tests
-    signup_response = test_signup()
-    login_response = test_login()
-    
-    if access_token is None:
-        print("❌ Failed to get access token. Aborting remaining tests.")
-        return
-    
-    test_authentication_check()
-    
-    # User profile tests
-    test_get_profile()
-    test_update_profile()
-    test_add_experience()
-    test_add_project()
-    test_update_skills()
-    test_add_certification()
-    
-    # Dashboard test
-    test_get_dashboard()
-    
-    # Portfolio tests
-    test_get_portfolio()
-    test_public_portfolio()
-    
-    # Announcement tests
-    test_get_all_announcements()
-    
-    # Message tests
-    test_send_message()
-    test_get_all_messages()
-    
-    print("\n========== ALL TESTS COMPLETED ==========")
+    # Student profile access
+    headers_student = {'Authorization': f"Bearer {student_credentials['token']}"}
+    rv = client.get('/api/student/profile/', headers=headers_student)
+    assert rv.status_code == 200
+    profile = rv.get_json()['profile']
+    assert profile['registration_no'] == student_credentials['reg_no']
 
-if __name__ == "__main__":
-    run_tests()
+    # Student applies to company
+    apply_data = {'coverLetter': 'CL', 'portfolio': 'http://p', 'availability': 'ASAP', 'noticePeriod': 'None'}
+    rv = client.post(f'/api/company/{cid}/apply', json=apply_data, headers=headers_student)
+    assert rv.status_code == 201
+    app_id = rv.get_json()['application_id']
+
+    # Student views own applications
+    rv = client.get('/api/company/applications', headers=headers_student)
+    assert rv.status_code == 200
+    apps = rv.get_json()['applications']
+    assert any(a['_id'] == app_id for a in apps)
+
+    # Student checks application status
+    rv = client.get(f'/api/company/{cid}/status', headers=headers_student)
+    assert rv.status_code == 200
+    assert rv.get_json()['status'] == 'pending'
+
+    # Admin views all applications
+    rv = client.get('/api/admin/applications', headers=headers_admin)
+    assert rv.status_code == 200
+    admin_apps = rv.get_json()['applications']
+    assert any(a['_id'] == app_id for a in admin_apps)
+
+    # Admin updates application status
+    rv = client.put(f'/api/admin/applications/{app_id}/status', json={'status': 'approved'}, headers=headers_admin)
+    assert rv.status_code == 200
+
+    # Student sees updated status
+    rv = client.get(f'/api/company/{cid}/status', headers=headers_student)
+    assert rv.get_json()['application']['status'] == 'approved'
+
+def test_search_endpoints_and_announcements(client, admin_token, student_credentials):
+    headers_admin = {'Authorization': f'Bearer {admin_token}'}
+    # Admin creates announcement
+    rv = client.post('/api/admin/announcements', json={'title': 'TestAnn', 'content': 'Hello'}, headers=headers_admin)
+    assert rv.status_code == 201
+    ann = rv.get_json()['announcement']
+    aid = ann['_id']
+
+    # Search company by keyword
+    rv = client.get('/api/search/companies', query_string={'q': 'TestCo'}, headers={'Authorization': f"Bearer {student_credentials['token']}"})
+    assert rv.status_code == 200
+    results = rv.get_json()['companies']
+    assert any(c['name'] == 'TestCo' for c in results)
+
+    # Admin searches students
+    rv = client.get('/api/search/students', query_string={'q': student_credentials['reg_no']}, headers=headers_admin)
+    assert rv.status_code == 200
+    studs = rv.get_json()['students']
+    assert any(s['registration_no'] == student_credentials['reg_no'] for s in studs)
+
+    # Search announcements
+    rv = client.get('/api/search/announcements', query_string={'q': 'TestAnn'}, headers={'Authorization': f"Bearer {student_credentials['token']}"})
+    assert rv.status_code == 200
+    anns = rv.get_json()['announcements']
+    assert any(a['_id'] == aid for a in anns)
+
+    # Global search
+    rv = client.get('/api/search/global', query_string={'q': 'TestAnn'}, headers={'Authorization': f"Bearer {student_credentials['token']}"})
+    assert rv.status_code == 200
+    glob = rv.get_json()
+    assert 'companies' in glob and 'announcements' in glob 
