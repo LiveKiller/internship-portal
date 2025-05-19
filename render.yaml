@@ -13,3 +13,5 @@ services:
         sync: false
       - key: UPLOAD_FOLDER
         value: /opt/render/project/src/app/uploads
+      - key: FLASK_APP
+        value: wsgi:app
