@@ -131,10 +131,19 @@ def login():
     
     registration_no = data.get('registration_no')
     
+    # Print debug info
+    print(f"Login attempt for registration_no: {registration_no}")
+    print(f"Database connection: {db}")
+    
     # Find the user by registration number
     user = db.students.find_one({'registration_no': registration_no})
     
     if not user:
+        # Print debugging info about database
+        print(f"User not found! Available collections: {db.list_collection_names()}")
+        print(f"Students in database: {db.students.count_documents({})}")
+        if db.students.count_documents({}) > 0:
+            print(f"First student in DB: {db.students.find_one({})}")
         return jsonify({'error': 'User not found'}), 404
     
     # Check password (which is the registration number)

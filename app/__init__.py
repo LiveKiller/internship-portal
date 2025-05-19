@@ -3,6 +3,7 @@ from flask import Flask
 from pymongo import MongoClient
 from flask_jwt_extended import JWTManager
 from app.config import Config
+from flask_cors import CORS
 
 # Initialize MongoDB connection
 mongo = None
@@ -18,6 +19,8 @@ def create_app(config_class=Config):
     
     # Initialize JWT with Flask app
     jwt.init_app(app)
+    # Enable CORS
+    CORS(app)
     
     # Initialize MongoDB connection
     global mongo, db
@@ -35,7 +38,7 @@ def create_app(config_class=Config):
     
     # Register blueprints
     from app.auth.routes import auth_bp
-    from app.api.routes import api_bp
+    from app.routes import api_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(api_bp, url_prefix='/api')

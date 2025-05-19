@@ -1,27 +1,70 @@
-# Environment variables
-.env
-
-# Python cache files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual environment
+# Python virtual environments
+.venv/
 venv/
 env/
 ENV/
+.env
 
-# IDE files
-.idea/
-.vscode/
-
-# Logs
-*.log
-
-# Uploaded files
-app/uploads/
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Distribution / packaging
 dist/
 build/
 *.egg-info/
+
+# Logs
+logs/
+*.log
+
+# Test results
+test_results/
+
+# Database files
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Uploads
+app/uploads/*
+!app/uploads/announcements/.gitkeep
+!app/uploads/certifications/.gitkeep
+!app/uploads/cv/.gitkeep
+
+# Frontend build artifacts
+node_modules/
+npm-debug.log
+build/
+.cache/
+
+# Ignore any credentials or sensitive files
+*credentials*
+*password*
+*secret*
+!requirements.txt 
