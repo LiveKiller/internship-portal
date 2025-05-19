@@ -51,3 +51,6 @@ def create_app(config_class=Config):
         }
     
     return app
+
+# Create the application instance
+app = create_app()
