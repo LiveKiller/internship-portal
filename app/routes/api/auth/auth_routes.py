@@ -14,16 +14,16 @@ def signup():
     data = request.get_json()
     
     # Validate required fields
-    if not data or not data.get('registration_no') or not data.get('email') or not data.get('password'):
+    if not data or not data.get('registration_no') or not (data.get('email') or data.get('email_id')) or not data.get('password'):
         return jsonify({'error': 'Registration number, email, and password are required'}), 400
     
     registration_no = data.get('registration_no')
-    email = data.get('email')
+    email = data.get('email') or data.get('email_id')
     password = data.get('password')
     
-    # Validate registration number format
-    if not validate_registration_number(registration_no):
-        return jsonify({'error': 'Registration number must be in format 2X13XXXXX where X are integers'}), 400
+    # Validate registration number format (9 digits)
+    if not re.match(r'^\d{9}$', registration_no):
+        return jsonify({'error': 'Registration number must be 9 digits'}), 400
     
     # Validate email format
     if not validate_email(email):
@@ -48,21 +48,14 @@ def signup():
     
     # Create a new student record with required fields
     new_student = {
-        'registration_date': datetime.utcnow(),  # Track registration time
-        'name': data.get('name', 'New Student'),
-        'roll_number': data.get('roll_number', registration_no),
         'registration_no': registration_no,
         'email_id': email,
-        'mobile_no': data.get('mobile_no', ''),
         'password': hashed_password,
         'registered': True,
-        'date_of_birth': '',
+        'name': data.get('name', 'New Student'),
+        'roll_number': data.get('roll_number', registration_no),
+        'mobile_no': data.get('mobile_no', ''),
         'gender': 'Other',
-        'category': '',
-        'caste': '',
-        'aadhar_no': '',
-        'parivar_pehchan_patra_id': '',
-        'blood_group': '',
         'disability': 'No',
         'address': {
             'street': '',

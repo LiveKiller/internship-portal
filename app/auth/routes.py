@@ -12,11 +12,12 @@ def signup():
     data = request.get_json()
     
     # Validate required fields
-    if not data or not data.get('registration_no') or not data.get('email'):
-        return jsonify({'error': 'Registration number and email are required'}), 400
+    if not data or not data.get('registration_no') or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Registration number, email and password are required'}), 400
     
     registration_no = data.get('registration_no')
     email = data.get('email')
+    password = data.get('password')
     
     # Validate registration number format (9 digits)
     if not validate_registration_number(registration_no):
@@ -36,78 +37,17 @@ def signup():
     if existing_email:
         return jsonify({'error': 'User with this email already exists'}), 409
     
-    # Hash password (using registration number as password)
-    hashed_password = hash_password(registration_no)
+    # Hash password
+    hashed_password = hash_password(password)
     
-# Create a minimal student record with only required fields
+    # Create a minimal student record with only required fields
     new_student = {
-        'name': data.get('name', 'New Student'),
-        'roll_number': data.get('roll_number', registration_no),
         'registration_no': registration_no,
         'email_id': email,
-        'mobile_no': data.get('mobile_no', ''),
         'password': hashed_password,
         'registered': True
     }
     
-    # Add optional fields with default values
-    # These fields are no longer required by the schema but we'll include them
-    # to maintain application functionality
-    optional_fields = {
-        'date_of_birth': '',
-        'gender': '',
-        'category': '',
-        'caste': '',
-        'aadhar_no': '',
-        'parivar_pehchan_patra_id': '',
-        'blood_group': '',
-        'disability': 'No',
-        'address': {
-            'street': '',
-            'pin': '',
-            'district': '',
-            'state': '',
-            'country': ''
-        },
-        'father': {
-            'name': '',
-            'mobile_no': '',
-            'email_id': ''
-        },
-        'mother': {
-            'name': '',
-            'mobile_no': '',
-            'email_id': ''
-        },
-        'specialization': '',
-        'pass_out_year': 0,
-        'year_of_admission': 0,
-        'marks': 0.0,
-        'attendance': 0.0,
-        'experience': [],
-        'skills': {
-            'technical': [],
-            'non_technical': []
-        },
-        'projects': [],
-        'education': {
-            'tenth': 0.0,
-            'twelfth': 0.0,
-            'graduation': ''
-        },
-        'cv': '',
-        'companies': {
-            'applied': [],
-            'rejected': [],
-            'interviews_attended': [],
-            'interviews_not_attended': []
-        },
-        'certifications': [],
-        'messages': ''
-    }
-    
-    # Update the new_student dictionary with optional fields
-    new_student.update(optional_fields) 
     # Insert the new student
     result = db.students.insert_one(new_student)
     
@@ -126,32 +66,24 @@ def login():
     """Login a student user."""
     data = request.get_json()
     
-    if not data or not data.get('registration_no'):
-        return jsonify({'error': 'Registration number is required'}), 400
+    if not data or not data.get('email_id') or not data.get('password'):
+        return jsonify({'error': 'Email and password are required'}), 400
     
-    registration_no = data.get('registration_no')
+    email_id = data.get('email_id')
+    password = data.get('password')
     
-    # Print debug info
-    print(f"Login attempt for registration_no: {registration_no}")
-    print(f"Database connection: {db}")
-    
-    # Find the user by registration number
-    user = db.students.find_one({'registration_no': registration_no})
+    # Find the user by email
+    user = db.students.find_one({'email_id': email_id})
     
     if not user:
-        # Print debugging info about database
-        print(f"User not found! Available collections: {db.list_collection_names()}")
-        print(f"Students in database: {db.students.count_documents({})}")
-        if db.students.count_documents({}) > 0:
-            print(f"First student in DB: {db.students.find_one({})}")
         return jsonify({'error': 'User not found'}), 404
     
-    # Check password (which is the registration number)
-    if not check_password(user['password'], registration_no):
+    # Check password
+    if not check_password(user['password'], password):
         return jsonify({'error': 'Invalid credentials'}), 401
     
     # Generate access token
-    access_token = create_access_token(identity=registration_no)
+    access_token = create_access_token(identity=user['registration_no'])
     
     return jsonify({
         'message': 'Login successful',

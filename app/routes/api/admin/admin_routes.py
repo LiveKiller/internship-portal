@@ -212,20 +212,12 @@ def create_company():
     if not data or not data.get('name') or not data.get('job_title'):
         return jsonify({'error': 'Company name and job title are required'}), 400
     
-    # Create company object
+    # Create company object with minimal required fields
     company = {
         'name': data.get('name'),
-        'logo': data.get('logo', ''),
         'job_title': data.get('job_title'),
-        'job_description': data.get('job_description', ''),
-        'job_type': data.get('job_type', 'Full-time'),
-        'work_place': data.get('work_place', 'On-site'),
-        'duration': data.get('duration', '6 months'),
-        'stipend': data.get('stipend', 0),
-        'requirements': data.get('requirements', []),
-        'posted_date': time.time(),
-        'deadline': data.get('deadline', time.time() + 30*24*60*60),  # Default 30 days
-        'active': data.get('active', True)
+        'active': True,
+        'posted_date': datetime.now()
     }
     
     # Insert the company
@@ -356,10 +348,10 @@ def update_application_status(application_id):
     if not ObjectId.is_valid(application_id):
         return jsonify({'error': 'Invalid application ID format'}), 400
 
-    # Update the application status and set status_updated_date
+    # Update the application status
     result = db.applications.update_one(
         {'_id': ObjectId(application_id)},
-        {'$set': {'status': status_val, 'status_updated_date': datetime.now()}}
+        {'$set': {'status': status_val}}
     )
 
     if result.modified_count:

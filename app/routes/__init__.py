@@ -12,7 +12,6 @@ from app.routes.api.search import search_routes
 api_bp = Blueprint('api', __name__)
 
 # Register all route blueprints
-# Register all route blueprints with correct names
 try:
     api_bp.register_blueprint(auth_routes.auth_bp, url_prefix='/auth')
 except AttributeError:
@@ -34,7 +33,7 @@ except AttributeError:
     print("Warning: dashboard_bp not found in dashboard_routes")
 
 try:
-    api_bp.register_blueprint(profile_routes.profile_bp, url_prefix='/student/profile')
+    api_bp.register_blueprint(profile_routes.profile_bp, url_prefix='/profile')
 except AttributeError:
     print("Warning: profile_bp not found in profile_routes")
 
@@ -44,7 +43,7 @@ except AttributeError:
     print("Warning: portfolio_bp not found in portfolio_routes")
 
 try:
-    api_bp.register_blueprint(notifications_routes.notification_bp, url_prefix='/student/notifications')
+    api_bp.register_blueprint(notifications_routes.notification_bp, url_prefix='/notifications')
 except AttributeError:
     print("Warning: notification_bp not found in notifications_routes")
 
@@ -77,30 +76,18 @@ except AttributeError:
 @api_bp.route('/debug', methods=['GET'])
 def debug():
     """Debug route to check database connection and collections."""
-    from app import db
-    import pymongo
-    import os
+    from app import db, mongo
     
     try:
+        # Test MongoDB connection
+        mongo.admin.command('ping')
+        
+        # Get basic debug info
         debug_info = {
-            'database_connection': 'Connected',
             'database_name': db.name,
             'collections': db.list_collection_names(),
-            'uploads_directory': os.path.exists('app/uploads'),
-            'upload_subdirectories': {
-                'cv': os.path.exists('app/uploads/cv'),
-                'certifications': os.path.exists('app/uploads/certifications'),
-                'announcements': os.path.exists('app/uploads/announcements')
-            },
-            'pymongo_version': pymongo.__version__
+            'students_count': db.students.count_documents({})
         }
-        
-        # Check if we can actually query the database
-        try:
-            students_count = db.students.count_documents({})
-            debug_info['students_count'] = students_count
-        except Exception as e:
-            debug_info['students_query_error'] = str(e)
         
         return jsonify({
             'status': 'success',
@@ -110,6 +97,5 @@ def debug():
     except Exception as e:
         return jsonify({
             'status': 'error',
-            'message': 'Debug information could not be retrieved',
-            'error': str(e)
+            'message': str(e)
         }), 500

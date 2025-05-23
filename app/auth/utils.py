@@ -15,8 +15,8 @@ def check_password(stored_password, provided_password):
     return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password)
 
 def validate_registration_number(reg_no):
-    """Validate that a registration number is 9 digits."""
-    return bool(re.match(r'^\d{9}$', reg_no))
+    """Validate that a registration number matches the format 2X13XXXXX where X are integers."""
+    return bool(re.match(r'^2\d13\d{5}$', reg_no))
 
 def validate_email(email):
     """Validate that an email has a valid format."""

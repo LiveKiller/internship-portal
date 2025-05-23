@@ -6,6 +6,10 @@ import pytest
 import random
 import string
 from app import create_app
+import unittest
+import json
+from app.config import Config
+from app import db
 
 @pytest.fixture
 def app():
@@ -122,7 +126,7 @@ def test_full_company_and_application_flow(client, admin_token, student_credenti
 
     # Student profile access
     headers_student = {'Authorization': f"Bearer {student_credentials['token']}"}
-    rv = client.get('/api/student/profile/', headers=headers_student)
+    rv = client.get('/api/profile/', headers=headers_student)
     assert rv.status_code == 200
     profile = rv.get_json()['profile']
     assert profile['registration_no'] == student_credentials['reg_no']
@@ -189,3 +193,147 @@ def test_search_endpoints_and_announcements(client, admin_token, student_credent
     assert rv.status_code == 200
     glob = rv.get_json()
     assert 'companies' in glob and 'announcements' in glob 
+
+class TestConfig(Config):
+    TESTING = True
+    MONGO_URI = "mongodb://localhost:27017/internship_portal_test"
+
+class APITestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app(TestConfig)
+        self.client = self.app.test_client()
+        self.test_user = {
+            "registration_no": "211300001",
+            "email": "test@example.com",
+            "password": "Test123password",
+            "name": "Test User"
+        }
+        
+        # Clear test database collections
+        with self.app.app_context():
+            db.students.delete_many({})
+            db.companies.delete_many({})
+            db.notifications.delete_many({})
+            db.messages.delete_many({})
+    
+    def test_signup(self):
+        """Test user registration"""
+        response = self.client.post('/auth/signup',
+                                  json=self.test_user)
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue('access_token' in data)
+        self.assertEqual(data['message'], 'User registered successfully')
+    
+    def test_login(self):
+        """Test user login"""
+        # First register a user
+        self.client.post('/auth/signup', json=self.test_user)
+        
+        # Then try to login
+        response = self.client.post('/auth/login',
+                                  json={
+                                      "email_id": self.test_user["email"],
+                                      "password": self.test_user["password"]
+                                  })
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('access_token' in data)
+        self.assertEqual(data['message'], 'Login successful')
+    
+    def test_protected_route(self):
+        """Test accessing a protected route with and without authentication"""
+        # Try accessing without token
+        response = self.client.get('/api/profile/')
+        self.assertEqual(response.status_code, 401)
+        
+        # Register and get token
+        response = self.client.post('/auth/signup', json=self.test_user)
+        token = json.loads(response.data)['access_token']
+        
+        # Try accessing with token
+        response = self.client.get('/api/profile/',
+                                 headers={'Authorization': f'Bearer {token}'})
+        self.assertEqual(response.status_code, 200)
+    
+    def test_profile_update(self):
+        """Test profile update functionality"""
+        # Register and get token
+        response = self.client.post('/auth/signup', json=self.test_user)
+        token = json.loads(response.data)['access_token']
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        # Update profile
+        update_data = {
+            "mobile_no": "1234567890",
+            "specialization": "Computer Science",
+            "year_of_admission": 2021
+        }
+        
+        response = self.client.put('/api/profile/',
+                                 json=update_data,
+                                 headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify update
+        response = self.client.get('/api/profile/', headers=headers)
+        data = json.loads(response.data)['profile']
+        self.assertEqual(data['mobile_no'], update_data['mobile_no'])
+        self.assertEqual(data['specialization'], update_data['specialization'])
+        self.assertEqual(data['year_of_admission'], update_data['year_of_admission'])
+    
+    def test_company_listing(self):
+        """Test company listing functionality"""
+        # Register and get token
+        response = self.client.post('/auth/signup', json=self.test_user)
+        token = json.loads(response.data)['access_token']
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        # Add a test company to the database
+        with self.app.app_context():
+            db.companies.insert_one({
+                "name": "Test Company",
+                "job_title": "Software Engineer Intern",
+                "job_type": "Internship",
+                "work_place": "Remote",
+                "duration": "3 months",
+                "stipend": 20000,
+                "active": True
+            })
+        
+        # Get company listings
+        response = self.client.get('/api/company/', headers=headers)
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data['companies']), 1)
+        self.assertEqual(data['companies'][0]['name'], "Test Company")
+    
+    def test_notification_system(self):
+        """Test notification functionality"""
+        # Register and get token
+        response = self.client.post('/auth/signup', json=self.test_user)
+        token = json.loads(response.data)['access_token']
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        # Add a test notification
+        with self.app.app_context():
+            db.notifications.insert_one({
+                "recipient_id": self.test_user["registration_no"],
+                "title": "Test Notification",
+                "content": "This is a test notification",
+                "read": False
+            })
+        
+        # Get notifications
+        response = self.client.get('/api/notifications/', headers=headers)
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data['notifications']), 1)
+        self.assertEqual(data['notifications'][0]['title'], "Test Notification")
+
+if __name__ == '__main__':
+    unittest.main() 

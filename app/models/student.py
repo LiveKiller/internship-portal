@@ -15,40 +15,13 @@ def create_student_schema_validator():
         "$jsonSchema": {
             "bsonType": "object",
             "required": [
-                "name",
-                "roll_number",
                 "registration_no",
-                "date_of_birth",
-                "gender",
-                "category",
-                "caste",
-                "aadhar_no",
-                "parivar_pehchan_patra_id",
-                "blood_group",
-                "disability",
-                "mobile_no",
                 "email_id",
-                "address",
-                "father",
-                "mother",
-                "specialization",
-                "registered",
-                "pass_out_year",
-                "year_of_admission",
-                "marks",
-                "attendance",
-                "experience",
-                "skills",
-                "projects",
-                "education",
-                "cv",
-                "companies",
-                "certifications",
-                "messages"
+                "registered"
             ],
             "properties": {
                 "name": {
-                    "bsonType": "string",
+                    "bsonType": ["string", "null"],
                     "description": "Student's full name"
                 },
                 "roll_number": {
@@ -60,7 +33,7 @@ def create_student_schema_validator():
                     "description": "University registration number"
                 },
                 "password": {
-                    "bsonType": "binData",
+                    "bsonType": ["binData", "null"],
                     "description": "Hashed password"
                 },
                 "date_of_birth": {
@@ -69,11 +42,7 @@ def create_student_schema_validator():
                 },
                 "gender": {
                     "bsonType": "string",
-                    "enum": [
-                        "Male",
-                        "Female",
-                        "Other"
-                    ],
+                    "enum": ["Male", "Female", "Other"],
                     "description": "Gender"
                 },
                 "category": {
@@ -98,10 +67,7 @@ def create_student_schema_validator():
                 },
                 "disability": {
                     "bsonType": "string",
-                    "enum": [
-                        "Yes",
-                        "No"
-                    ],
+                    "enum": ["Yes", "No"],
                     "description": "Disability status"
                 },
                 "mobile_no": {
@@ -114,13 +80,7 @@ def create_student_schema_validator():
                 },
                 "address": {
                     "bsonType": "object",
-                    "required": [
-                        "street",
-                        "pin",
-                        "district",
-                        "state",
-                        "country"
-                    ],
+                    "description": "Address details",
                     "properties": {
                         "street": {
                             "bsonType": "string",
@@ -146,11 +106,7 @@ def create_student_schema_validator():
                 },
                 "father": {
                     "bsonType": "object",
-                    "required": [
-                        "name",
-                        "mobile_no",
-                        "email_id"
-                    ],
+                    "description": "Father's details",
                     "properties": {
                         "name": {
                             "bsonType": "string",
@@ -168,11 +124,7 @@ def create_student_schema_validator():
                 },
                 "mother": {
                     "bsonType": "object",
-                    "required": [
-                        "name",
-                        "mobile_no",
-                        "email_id"
-                    ],
+                    "description": "Mother's details",
                     "properties": {
                         "name": {
                             "bsonType": "string",
@@ -217,13 +169,6 @@ def create_student_schema_validator():
                     "description": "Experience details",
                     "items": {
                         "bsonType": "object",
-                        "required": [
-                            "job_title",
-                            "company_name",
-                            "start_date",
-                            "description",
-                            "skills"
-                        ],
                         "properties": {
                             "job_title": {
                                 "bsonType": "string",
@@ -280,11 +225,6 @@ def create_student_schema_validator():
                     "description": "Projects details",
                     "items": {
                         "bsonType": "object",
-                        "required": [
-                            "project_name",
-                            "project_description",
-                            "project_link"
-                        ],
                         "properties": {
                             "project_name": {
                                 "bsonType": "string",
@@ -304,11 +244,6 @@ def create_student_schema_validator():
                 "education": {
                     "bsonType": "object",
                     "description": "Educational details",
-                    "required": [
-                        "tenth",
-                        "twelfth",
-                        "graduation"
-                    ],
                     "properties": {
                         "tenth": {
                             "bsonType": "double",
@@ -331,38 +266,32 @@ def create_student_schema_validator():
                 "companies": {
                     "bsonType": "object",
                     "description": "Company application details",
-                    "required": [
-                        "applied",
-                        "rejected",
-                        "interviews_attended",
-                        "interviews_not_attended"
-                    ],
                     "properties": {
                         "applied": {
                             "bsonType": "array",
                             "items": {
-                                "bsonType": "string"
+                                "bsonType": ["string", "objectId"]
                             },
                             "description": "Companies applied for"
                         },
                         "rejected": {
                             "bsonType": "array",
                             "items": {
-                                "bsonType": "string"
+                                "bsonType": ["string", "objectId"]
                             },
                             "description": "Companies rejected"
                         },
                         "interviews_attended": {
                             "bsonType": "array",
                             "items": {
-                                "bsonType": "string"
+                                "bsonType": ["string", "objectId"]
                             },
                             "description": "Companies where interviews were attended"
                         },
                         "interviews_not_attended": {
                             "bsonType": "array",
                             "items": {
-                                "bsonType": "string"
+                                "bsonType": ["string", "objectId"]
                             },
                             "description": "Companies where interviews were not attended"
                         }
@@ -373,12 +302,6 @@ def create_student_schema_validator():
                     "description": "Certifications received",
                     "items": {
                         "bsonType": "object",
-                        "required": [
-                            "certificate_name",
-                            "institute_name",
-                            "verification_link",
-                            "pdf"
-                        ],
                         "properties": {
                             "certificate_name": {
                                 "bsonType": "string",
@@ -575,9 +498,20 @@ def create_interview_schema():
     except Exception as e:
         print(f"Error setting up interview schema: {e}")
         # Don't raise error to allow application to continue
+
 def initialize_db_schemas():
     """Initialize all database collection schemas."""
     try:
+        # Drop existing collections
+        collections = ["students", "announcements", "messages", "interviews"]
+        for collection in collections:
+            try:
+                db[collection].drop()
+                print(f"Dropped existing {collection} collection")
+            except Exception as e:
+                print(f"Warning: Could not drop {collection} collection: {e}")
+        
+        # Create collections with new schemas
         create_student_schema_validator()
         create_announcement_schema()
         create_message_schema()

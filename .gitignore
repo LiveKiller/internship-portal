@@ -68,4 +68,8 @@ build/
 *credentials*
 *password*
 *secret*
-!requirements.txt 
+!requirements.txt
+
+# Additional changes from the code block
+*.pyc
+.pytest_cache/ 

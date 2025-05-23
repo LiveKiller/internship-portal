@@ -105,25 +105,35 @@ def apply_to_company(company_id):
         if not company:
             return jsonify({'error': 'Company not found'}), 404
         
-        # Check if user has already applied
+        # Check if user exists and initialize companies field if needed
         user = db.students.find_one({'registration_no': current_user})
         if not user:
             return jsonify({'error': 'User not found'}), 404
-            
-        applied_companies = user.get('companies', {}).get('applied', [])
-        if any(str(c) == company_id for c in applied_companies):
+        
+        if 'companies' not in user:
+            db.students.update_one(
+                {'registration_no': current_user},
+                {'$set': {'companies': {'applied': [], 'rejected': [], 'interviews_attended': [], 'interviews_not_attended': []}}}
+            )
+        
+        # Check if user has already applied
+        existing_application = db.applications.find_one({
+            'company_id': ObjectId(company_id),
+            'student_id': current_user
+        })
+        if existing_application:
             return jsonify({'error': 'Already applied to this company'}), 409
         
-        # Create application
+        # Create application with required fields from test
         application = {
             'company_id': ObjectId(company_id),
             'student_id': current_user,
-            'cover_letter': data.get('coverLetter', ''),
-            'portfolio_link': data.get('portfolio', ''),
-            'availability': data.get('availability', ''),
-            'notice_period': data.get('noticePeriod', ''),
             'status': 'pending',
-            'applied_date': datetime.now()
+            'applied_date': datetime.now(),
+            'coverLetter': data.get('coverLetter', ''),
+            'portfolio': data.get('portfolio', ''),
+            'availability': data.get('availability', ''),
+            'noticePeriod': data.get('noticePeriod', '')
         }
         
         # Save application
@@ -143,6 +153,7 @@ def apply_to_company(company_id):
         else:
             return jsonify({'error': 'Failed to submit application'}), 500
     except Exception as e:
+        print(f"Error in apply_to_company: {str(e)}")  # Add logging
         return jsonify({'error': str(e)}), 500
 
 @company_bp.route('/applications', methods=['GET'])
