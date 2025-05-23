@@ -3,8 +3,11 @@ services:
     name: internship-portal-backend
     env: python
     region: singapore  # Choose the closest region to your users
-    buildCommand: chmod +x setup.sh && ./setup.sh
-    startCommand: gunicorn "app:app" --bind 0.0.0.0:$PORT
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p /opt/render/project/src/app/uploads/{cv,certifications,announcements}
+      chmod -R 755 /opt/render/project/src/app/uploads
+    startCommand: gunicorn wsgi:application --bind 0.0.0.0:$PORT --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -15,6 +18,6 @@ services:
       - key: UPLOAD_FOLDER
         value: /opt/render/project/src/app/uploads
       - key: FLASK_APP
-        value: app:app
+        value: wsgi:application
       - key: PORT
         value: 10000
