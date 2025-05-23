@@ -4,7 +4,7 @@ This document provides comprehensive documentation for all the API endpoints ava
 
 ## Base URL
 
-Production API base URL: `[https://internship-portal-backend-v15t.onrender.com](https://internship-portal-backend-v15t.onrender.com/)`
+Production API base URL: [https://internship-portal-backend-v15t.onrender.com](https://internship-portal-backend-v15t.onrender.com/)
 All API endpoints are prefixed with: `/api`
 
 For example: `https://internship-portal-backend.onrender.com/api/auth/login`
