@@ -80,7 +80,7 @@ def create_app(config_class=Config):
             logger.error(f"Error initializing database schemas: {str(e)}")
     
     # Register blueprints
-    from app.auth.routes import auth_bp
+    from app.routes.api.auth.auth_routes import auth_bp
     from app.routes import api_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
