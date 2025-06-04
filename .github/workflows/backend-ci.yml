@@ -3,8 +3,17 @@ name: Backend CI/CD
 on:
   push:
     branches: [ main, master ]
+    paths:
+      - 'app/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'app/**'
+      - 'tests/**'
+      - 'requirements.txt'
 
 jobs:
   test:
@@ -34,6 +43,11 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov
         
+    - name: Verify directory structure
+      run: |
+        find app -type d | sort
+        ls -la app/routes/api
+
     - name: Run tests
       env:
         MONGO_URI: mongodb+srv://user-idfk:password%40user-idfk@cluster0.ji3cu1q.mongodb.net/chat_app?retryWrites=true&w=majority
@@ -43,7 +57,7 @@ jobs:
         ADMIN_ACCESS_KEY: adminkey
         UPLOAD_FOLDER: app/uploads
       run: |
-        pytest --cov=app --cov-report=xml
+        python -m pytest --cov=app --cov-report=xml
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -71,4 +85,8 @@ jobs:
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
-        render deploy --service internship-portal-backend 
+        if [ -n "$RENDER_API_KEY" ]; then
+          render deploy --service internship-portal-backend
+        else
+          echo "RENDER_API_KEY not set, skipping deployment"
+        fi 
