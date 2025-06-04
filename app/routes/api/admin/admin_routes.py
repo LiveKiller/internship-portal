@@ -202,22 +202,29 @@ def list_companies():
         'pages': (total + per_page - 1) // per_page
     }), 200
 
-@admin_bp.route('/companies', methods=['POST'])
+@admin_bp.route('/companies/create', methods=['POST'])
 @jwt_required()
 @admin_required
 def create_company():
     """Create a new company (protected admin route)."""
     data = request.get_json()
     
-    if not data or not data.get('name') or not data.get('job_title'):
-        return jsonify({'error': 'Company name and job title are required'}), 400
+    if not data or not data.get('name'):
+        return jsonify({'error': 'Company name is required'}), 400
     
-    # Create company object with minimal required fields
+    # Create company object
     company = {
         'name': data.get('name'),
-        'job_title': data.get('job_title'),
-        'active': True,
-        'posted_date': datetime.now()
+        'description': data.get('description', ''),
+        'website': data.get('website', ''),
+        'logo_url': data.get('logo_url', ''),
+        'industry': data.get('industry', ''),
+        'location': data.get('location', ''),
+        'positions': data.get('positions', []),
+        'requirements': data.get('requirements', []),
+        'deadline': data.get('deadline', int(time.time()) + 604800),  # Default 1 week from now
+        'created_at': int(time.time()),
+        'active': data.get('active', True)
     }
     
     # Insert the company

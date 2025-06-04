@@ -103,11 +103,44 @@ def create_app(config_class=Config):
         except Exception as e:
             logger.error(f"Error initializing database schemas: {str(e)}")
     
-    # Register blueprints
-    from app.routes.api.auth.auth_routes import auth_bp
-    from app.routes import api_bp
+    # Import and register blueprints
+    # NOTE: Blueprint names have been standardized to avoid conflicts
     
-    app.register_blueprint(auth_bp, url_prefix='/auth')
+    # Student blueprints with standardized naming and URL prefixes
+    from app.routes.api.student.routes import student_bp
+    from app.routes.api.student.dashboard_routes import student_dashboard_bp
+    from app.routes.api.student.profile_routes import student_profile_bp
+    from app.routes.api.student.portfolio_routes import student_portfolio_bp
+    from app.routes.api.student.notifications_routes import student_notifications_bp
+    from app.routes.api.student.recommendations_routes import student_recommendations_bp
+    from app.routes.api.student.announcement_routes import student_announcements_bp
+    from app.routes.api.student.messages_routes import message_bp
+    
+    # Faculty routes
+    from app.routes.api.faculty.dashboard_routes import faculty_dashboard_bp
+    
+    # Archive module for backward compatibility
+    from app.archive.messages import messages_bp as archived_messages_bp
+    
+    # Register student routes directly
+    app.register_blueprint(student_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_dashboard_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_profile_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_portfolio_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_notifications_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_recommendations_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(student_announcements_bp)  # URL prefix defined in the blueprint
+    app.register_blueprint(message_bp)  # URL prefix defined in the blueprint
+    
+    # Register faculty routes directly
+    app.register_blueprint(faculty_dashboard_bp)  # URL prefix defined in the blueprint
+    
+    # Register archive routes for backward compatibility
+    app.register_blueprint(archived_messages_bp)  # URL prefix defined in the blueprint
+    
+    # Import and register the main API blueprint which contains nested blueprints
+    # This will handle admin, company, auth, and search routes
+    from app.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
     # JWT error handlers

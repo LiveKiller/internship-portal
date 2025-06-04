@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app.auth.role_required import role_required
 from app import db
+from app.auth.role_required import role_required
 
-faculty_dashboard_bp = Blueprint('faculty_dashboard', __name__)
+# Change the URL prefix to avoid conflict with root route
+faculty_dashboard_bp = Blueprint('faculty_dashboard_module', __name__, url_prefix='/api/faculty/dashboard')
 
 @faculty_dashboard_bp.route('/', methods=['GET'])
 @jwt_required()

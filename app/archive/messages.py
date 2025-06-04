@@ -1,3 +1,8 @@
+"""
+Archived message functionality.
+This module contains message-related routes that have been moved from app.routes.api.student.messages_routes.
+"""
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson.objectid import ObjectId
@@ -5,9 +10,9 @@ from datetime import datetime
 
 from app import db
 
-message_bp = Blueprint('archived_messages', __name__)
+messages_bp = Blueprint('archived_messages', __name__, url_prefix='/student/messages')
 
-@message_bp.route('/', methods=['GET'])
+@messages_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_all_messages():
     """Get all messages for the current user."""
@@ -29,7 +34,7 @@ def get_all_messages():
         'messages': messages
     }), 200
 
-@message_bp.route('/<message_id>', methods=['GET'])
+@messages_bp.route('/<message_id>', methods=['GET'])
 @jwt_required()
 def get_message(message_id):
     """Get a specific message by ID."""
@@ -70,7 +75,7 @@ def get_message(message_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@message_bp.route('/', methods=['POST'])
+@messages_bp.route('/send', methods=['POST'])
 @jwt_required()
 def send_message():
     """Send a new message."""
@@ -108,7 +113,7 @@ def send_message():
     else:
         return jsonify({'error': 'Failed to send message'}), 500
 
-@message_bp.route('/<message_id>', methods=['DELETE'])
+@messages_bp.route('/<message_id>/delete', methods=['DELETE'])
 @jwt_required()
 def delete_message(message_id):
     """Delete a message."""

@@ -3,13 +3,8 @@ from flask import Blueprint, jsonify
 # Import all route modules
 from app.routes.api.auth import auth_routes
 from app.routes.api.admin import admin_routes, analytics_routes
-from app.routes.api.student import dashboard_routes, profile_routes, portfolio_routes
-from app.routes.api.student import notifications_routes, announcement_routes, recommendations_routes
 from app.routes.api.company import company_routes
 from app.routes.api.search import search_routes
-
-# Import new unified routes
-from app.routes import dashboard, profile
 
 # Create main API blueprint
 api_bp = Blueprint('api', __name__)
@@ -29,48 +24,6 @@ try:
     api_bp.register_blueprint(analytics_routes.analytics_bp, url_prefix='/admin/analytics')
 except AttributeError:
     print("Warning: analytics_bp not found in analytics_routes")
-
-# Register unified role-based routes
-try:
-    api_bp.register_blueprint(dashboard.dashboard_bp, url_prefix='/dashboard')
-except AttributeError:
-    print("Warning: dashboard_bp not found in dashboard")
-
-try:
-    api_bp.register_blueprint(profile.profile_bp, url_prefix='/profile')
-except AttributeError:
-    print("Warning: profile_bp not found in profile")
-
-# Register old routes for backward compatibility
-try:
-    api_bp.register_blueprint(dashboard_routes.dashboard_bp, url_prefix='/student/dashboard')
-except AttributeError:
-    print("Warning: dashboard_bp not found in dashboard_routes")
-
-try:
-    api_bp.register_blueprint(profile_routes.profile_bp, url_prefix='/student/profile')
-except AttributeError:
-    print("Warning: profile_bp not found in profile_routes")
-
-try:
-    api_bp.register_blueprint(portfolio_routes.portfolio_bp, url_prefix='/student/portfolio')
-except AttributeError:
-    print("Warning: portfolio_bp not found in portfolio_routes")
-
-try:
-    api_bp.register_blueprint(notifications_routes.notification_bp, url_prefix='/notifications')
-except AttributeError:
-    print("Warning: notification_bp not found in notifications_routes")
-
-try:
-    api_bp.register_blueprint(announcement_routes.announcement_bp, url_prefix='/student/announcements')
-except AttributeError:
-    print("Warning: announcement_bp not found in announcement_routes")
-
-try:
-    api_bp.register_blueprint(recommendations_routes.recommendation_bp, url_prefix='/student/recommendations')
-except AttributeError:
-    print("Warning: recommendation_bp not found in recommendations_routes")
 
 try:
     api_bp.register_blueprint(company_routes.company_bp, url_prefix='/company')

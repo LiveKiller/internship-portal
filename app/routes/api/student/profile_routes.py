@@ -2,14 +2,17 @@ import os
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+from bson.objectid import ObjectId
+from werkzeug.utils import secure_filename
 
 from app import db
 from app.auth.utils import user_to_json
 from app.utils.file_utils import save_uploaded_file, delete_file
 
-profile_bp = Blueprint('profile', __name__)
+# Create blueprint with unique name and consistent URL prefix
+student_profile_bp = Blueprint('student_profile', __name__, url_prefix='/api/student/profile')
 
-@profile_bp.route('/', methods=['GET'])
+@student_profile_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_profile():
     """Get the profile of the current user."""
@@ -27,7 +30,7 @@ def get_profile():
         'profile': user_data
     }), 200
 
-@profile_bp.route('/', methods=['PUT'])
+@student_profile_bp.route('/update', methods=['PUT'])
 @jwt_required()
 def update_profile():
     """Update the profile of the current user."""
@@ -61,7 +64,7 @@ def update_profile():
     else:
         return jsonify({'message': 'No changes made to profile'}), 200
 
-@profile_bp.route('/upload-cv', methods=['POST'])
+@student_profile_bp.route('/upload-cv', methods=['POST'])
 @jwt_required()
 def upload_cv():
     """Upload a CV file."""
@@ -98,7 +101,7 @@ def upload_cv():
     except Exception as e:
         return jsonify({'error': f'Failed to upload CV: {str(e)}'}), 500
 
-@profile_bp.route('/download-cv', methods=['GET'])
+@student_profile_bp.route('/download-cv', methods=['GET'])
 @jwt_required()
 def download_cv():
     """Download the user's CV."""
@@ -119,7 +122,7 @@ def download_cv():
     except Exception as e:
         return jsonify({'error': f'Failed to download CV: {str(e)}'}), 500
 
-@profile_bp.route('/add-experience', methods=['POST'])
+@student_profile_bp.route('/add-experience', methods=['POST'])
 @jwt_required()
 def add_experience():
     """Add new experience to profile."""
@@ -159,7 +162,7 @@ def add_experience():
     else:
         return jsonify({'error': 'Failed to add experience'}), 500
 
-@profile_bp.route('/update-experience/<index>', methods=['PUT'])
+@student_profile_bp.route('/update-experience/<index>', methods=['PUT'])
 @jwt_required()
 def update_experience(index):
     """Update an existing experience in profile."""
@@ -201,7 +204,7 @@ def update_experience(index):
     else:
         return jsonify({'message': 'No changes made to experience'}), 200
 
-@profile_bp.route('/delete-experience/<index>', methods=['DELETE'])
+@student_profile_bp.route('/delete-experience/<index>', methods=['DELETE'])
 @jwt_required()
 def delete_experience(index):
     """Delete an experience from profile."""
@@ -237,7 +240,7 @@ def delete_experience(index):
     else:
         return jsonify({'error': 'Failed to delete experience'}), 500
 
-@profile_bp.route('/add-project', methods=['POST'])
+@student_profile_bp.route('/add-project', methods=['POST'])
 @jwt_required()
 def add_project():
     """Add new project to profile."""
@@ -278,7 +281,7 @@ def add_project():
     else:
         return jsonify({'error': 'Failed to add project'}), 500
 
-@profile_bp.route('/add-certification', methods=['POST'])
+@student_profile_bp.route('/add-certification', methods=['POST'])
 @jwt_required()
 def add_certification():
     """Add new certification to profile."""
@@ -346,7 +349,7 @@ def add_certification():
     else:
         return jsonify({'error': 'Failed to add certification'}), 500
 
-@profile_bp.route('/upload-certification/<certification_index>', methods=['POST'])
+@student_profile_bp.route('/upload-certification/<certification_index>', methods=['POST'])
 @jwt_required()
 def upload_certification_file(certification_index):
     """Upload a certification document for an existing certification."""
@@ -405,7 +408,7 @@ def upload_certification_file(certification_index):
     else:
         return jsonify({'error': result}), 400
 
-@profile_bp.route('/update-skills', methods=['PUT'])
+@student_profile_bp.route('/update-skills', methods=['PUT'])
 @jwt_required()
 def update_skills():
     """Update skills in profile."""
