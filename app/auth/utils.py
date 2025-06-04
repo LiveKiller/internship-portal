@@ -25,8 +25,55 @@ def validate_email(email):
 
 def get_current_user():
     """Get the current user from JWT identity."""
-    registration_no = get_jwt_identity()
-    return db.students.find_one({'registration_no': registration_no})
+    identity = get_jwt_identity()
+    
+    # First check if user is a student
+    user = db.students.find_one({'registration_no': identity})
+    if user:
+        return user, 'student'
+    
+    # Check if user is faculty
+    user = db.faculty.find_one({'faculty_id': identity})
+    if user:
+        return user, 'faculty'
+    
+    # Check if user is admin
+    user = db.admin.find_one({'admin_id': identity})
+    if user:
+        return user, 'admin'
+    
+    return None, None
+
+def get_user_role(identity=None):
+    """
+    Get the role of a user based on their identity.
+    
+    Args:
+        identity: The user's identity (registration_no, faculty_id, admin_id)
+                 If None, uses the JWT identity.
+    
+    Returns:
+        str: 'student', 'faculty', 'admin', or None if not found
+    """
+    if identity is None:
+        identity = get_jwt_identity()
+    
+    # Check if user is a student
+    student = db.students.find_one({'registration_no': identity})
+    if student:
+        return 'student'
+    
+    # Check if user is faculty
+    faculty = db.faculty.find_one({'faculty_id': identity})
+    if faculty:
+        return 'faculty'
+    
+    # Check if user is admin
+    admin = db.admin.find_one({'admin_id': identity})
+    if admin:
+        return 'admin'
+    
+    return None
 
 def user_to_json(user):
     """Convert a user document to JSON-serializable format."""
