@@ -13,3 +13,11 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'app/uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max file size for uploads
+
+class TestConfig(Config):
+    """Test configuration."""
+    TESTING = True
+    MONGO_URI = 'mongodb://localhost:27017/test_internship_portal'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)  # Longer expiration for testing
+    UPLOAD_FOLDER = 'app/uploads/test'
+    CACHE_TYPE = 'NullCache'  # Disable caching during tests
