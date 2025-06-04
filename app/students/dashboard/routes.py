@@ -5,10 +5,9 @@ import time
 from app import db
 from app.auth.utils import user_to_json
 
-# Create blueprint with unique name and consistent URL prefix
-student_dashboard_bp = Blueprint('student_dashboard', __name__, url_prefix='/api/student/dashboard')
+dashboard_bp = Blueprint('student_dashboard', __name__, url_prefix='/student/dashboard')
 
-@student_dashboard_bp.route('/', methods=['GET'])
+@dashboard_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_dashboard_data():
     """Get all user data for the dashboard."""
@@ -58,7 +57,7 @@ def get_dashboard_data():
         }
     }), 200
 
-@student_dashboard_bp.route('/stats', methods=['GET'])
+@dashboard_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_dashboard_stats():
     """Get only the dashboard statistics."""
@@ -104,7 +103,7 @@ def get_dashboard_stats():
         }
     }), 200
 
-@student_dashboard_bp.route('/upcoming-deadlines', methods=['GET'])
+@dashboard_bp.route('/upcoming-deadlines', methods=['GET'])
 @jwt_required()
 def get_upcoming_deadlines():
     """Get upcoming application deadlines."""
@@ -127,4 +126,4 @@ def get_upcoming_deadlines():
     return jsonify({
         'companies': companies,
         'count': len(companies)
-    }), 200
+    }), 200 

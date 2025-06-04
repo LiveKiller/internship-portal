@@ -6,10 +6,9 @@ from app import db
 from app.auth.utils import user_to_json
 from app.utils.file_utils import get_file
 
-# Create blueprint with unique name and consistent URL prefix
-student_portfolio_bp = Blueprint('student_portfolio', __name__, url_prefix='/api/student/portfolio')
+portfolio_bp = Blueprint('student_portfolio', __name__, url_prefix='/student/portfolio')
 
-@student_portfolio_bp.route('/', methods=['GET'])
+@portfolio_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_portfolio():
     """Get the portfolio data of the current user."""
@@ -40,7 +39,7 @@ def get_portfolio():
         'portfolio': portfolio_data
     }), 200
 
-@student_portfolio_bp.route('/download-cv', methods=['GET'])
+@portfolio_bp.route('/download-cv', methods=['GET'])
 @jwt_required()
 def download_cv():
     """Download the CV of the current user."""
@@ -67,7 +66,7 @@ def download_cv():
     # Get the file using our utility function
     return get_file(cv_path, as_attachment=True, custom_filename=original_name)
 
-@student_portfolio_bp.route('/download-certification/<certification_index>', methods=['GET'])
+@portfolio_bp.route('/download-certification/<certification_index>', methods=['GET'])
 @jwt_required()
 def download_certification(certification_index):
     """Download a certification file."""
@@ -105,7 +104,7 @@ def download_certification(certification_index):
     # Get the file using our utility function
     return get_file(cert_path, as_attachment=True, custom_filename=download_name)
 
-@student_portfolio_bp.route('/public/<registration_no>', methods=['GET'])
+@portfolio_bp.route('/public/<registration_no>', methods=['GET'])
 def get_public_portfolio(registration_no):
     """Get the public portfolio of a specific user."""
     # Get user data
@@ -125,4 +124,4 @@ def get_public_portfolio(registration_no):
     
     return jsonify({
         'portfolio': public_portfolio
-    }), 200
+    }), 200 

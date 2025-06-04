@@ -5,10 +5,9 @@ import re
 
 from app import db
 
-# Create blueprint with unique name and consistent URL prefix
-student_recommendations_bp = Blueprint('student_recommendations', __name__, url_prefix='/api/student/recommendations')
+recommendations_bp = Blueprint('student_recommendations', __name__, url_prefix='/student/recommendations')
 
-@student_recommendations_bp.route('/companies', methods=['GET'])
+@recommendations_bp.route('/companies', methods=['GET'])
 @jwt_required()
 def get_recommended_companies():
     """Get recommended companies based on user skills and interests."""
@@ -110,7 +109,7 @@ def get_recommended_companies():
         'recommendation_type': 'personalized'
     }), 200
 
-@student_recommendations_bp.route('/similar-companies/<company_id>', methods=['GET'])
+@recommendations_bp.route('/similar-companies/<company_id>', methods=['GET'])
 @jwt_required()
 def get_similar_companies(company_id):
     """Get companies similar to the specified company."""
@@ -158,7 +157,7 @@ def get_similar_companies(company_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@student_recommendations_bp.route('/trending', methods=['GET'])
+@recommendations_bp.route('/trending', methods=['GET'])
 @jwt_required()
 def get_trending_companies():
     """Get trending companies based on application count and recency."""
@@ -232,4 +231,4 @@ def get_trending_companies():
         }), 200
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 500 

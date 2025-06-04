@@ -6,7 +6,8 @@ from app import db
 from app.auth.utils import user_to_json, get_user_role
 from app.auth.role_required import role_required
 
-profile_bp = Blueprint('legacy_profile', __name__)
+# Create a blueprint with a unique name to avoid conflicts
+profile_bp = Blueprint('profile_module', __name__, url_prefix='/profile')
 
 @profile_bp.route('/', methods=['GET'])
 @jwt_required()

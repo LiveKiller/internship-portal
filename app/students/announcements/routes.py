@@ -5,10 +5,9 @@ import time
 
 from app import db
 
-# Create blueprint with unique name and consistent URL prefix
-student_announcements_bp = Blueprint('student_announcements', __name__, url_prefix='/api/student/announcements')
+announcements_bp = Blueprint('student_announcements', __name__, url_prefix='/student/announcements')
 
-@student_announcements_bp.route('/', methods=['GET'])
+@announcements_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_all_announcements():
     """Get all announcements with optional filtering and pagination."""
@@ -50,7 +49,7 @@ def get_all_announcements():
         'pages': (total + per_page - 1) // per_page
     }), 200
 
-@student_announcements_bp.route('/<announcement_id>', methods=['GET'])
+@announcements_bp.route('/<announcement_id>', methods=['GET'])
 @jwt_required()
 def get_announcement(announcement_id):
     """Get a specific announcement by ID."""
@@ -75,7 +74,7 @@ def get_announcement(announcement_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@student_announcements_bp.route('/recent', methods=['GET'])
+@announcements_bp.route('/recent', methods=['GET'])
 @jwt_required()
 def get_recent_announcements():
     """Get recent announcements (last 30 days by default)."""
@@ -100,7 +99,7 @@ def get_recent_announcements():
         'count': len(announcements)
     }), 200
 
-@student_announcements_bp.route('/important', methods=['GET'])
+@announcements_bp.route('/important', methods=['GET'])
 @jwt_required()
 def get_important_announcements():
     """Get important announcements."""
@@ -118,4 +117,4 @@ def get_important_announcements():
     return jsonify({
         'announcements': announcements,
         'count': len(announcements)
-    }), 200
+    }), 200 

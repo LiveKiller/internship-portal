@@ -5,7 +5,8 @@ from app import db
 from app.auth.utils import user_to_json, get_user_role
 from app.auth.role_required import role_required
 
-dashboard_bp = Blueprint('legacy_dashboard', __name__)
+# Create a blueprint with a unique name to avoid conflicts
+dashboard_bp = Blueprint('dashboard_module', __name__, url_prefix='/dashboard')
 
 @dashboard_bp.route('/', methods=['GET'])
 @jwt_required()

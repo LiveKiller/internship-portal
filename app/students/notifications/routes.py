@@ -5,10 +5,9 @@ import time
 
 from app import db
 
-# Create blueprint with unique name and consistent URL prefix
-student_notifications_bp = Blueprint('student_notifications', __name__, url_prefix='/api/student/notifications')
+notifications_bp = Blueprint('student_notifications', __name__, url_prefix='/student/notifications')
 
-@student_notifications_bp.route('/', methods=['GET'])
+@notifications_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_all_notifications():
     """Get all notifications for the current user with pagination."""
@@ -51,7 +50,7 @@ def get_all_notifications():
         'pages': (total + per_page - 1) // per_page
     }), 200
 
-@student_notifications_bp.route('/<notification_id>', methods=['GET'])
+@notifications_bp.route('/<notification_id>', methods=['GET'])
 @jwt_required()
 def get_notification(notification_id):
     """Get a specific notification by ID."""
@@ -89,7 +88,7 @@ def get_notification(notification_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@student_notifications_bp.route('/mark-read/<notification_id>', methods=['PUT'])
+@notifications_bp.route('/mark-read/<notification_id>', methods=['PUT'])
 @jwt_required()
 def mark_notification_read(notification_id):
     """Mark a notification as read."""
@@ -119,7 +118,7 @@ def mark_notification_read(notification_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@student_notifications_bp.route('/mark-all-read', methods=['PUT'])
+@notifications_bp.route('/mark-all-read', methods=['PUT'])
 @jwt_required()
 def mark_all_notifications_read():
     """Mark all notifications as read for the current user."""
@@ -142,7 +141,7 @@ def mark_all_notifications_read():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@student_notifications_bp.route('/unread-count', methods=['GET'])
+@notifications_bp.route('/unread-count', methods=['GET'])
 @jwt_required()
 def get_unread_count():
     """Get the count of unread notifications for the current user."""
@@ -188,4 +187,4 @@ def create_notification(recipient_id, title, message, notification_type, related
     }
     
     result = db.notifications.insert_one(notification)
-    return str(result.inserted_id) if result.inserted_id else None
+    return str(result.inserted_id) if result.inserted_id else None 
