@@ -1,9 +1,18 @@
+"""
+DEPRECATED: This module has been moved to app.archive.messages
+Please use the archive version instead.
+"""
+
+# Keep imports for backwards compatibility
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson.objectid import ObjectId
 from datetime import datetime
 
 from app import db
+
+# This file is kept only for backward compatibility
+# All functionality has been moved to app.archive.messages
 
 message_bp = Blueprint('messages', __name__)
 
