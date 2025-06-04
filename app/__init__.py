@@ -6,9 +6,17 @@ from app.config import Config
 from flask_cors import CORS
 import logging
 from urllib.parse import urlparse
+from datetime import timedelta
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('app.log')
+    ]
+)
 logger = logging.getLogger(__name__)
 
 # Initialize MongoDB connection
@@ -23,10 +31,26 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
+    # Configure JWT settings
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+    app.config['JWT_ERROR_MESSAGE_KEY'] = 'error'
+    
     # Initialize JWT with Flask app
     jwt.init_app(app)
-    # Enable CORS
-    CORS(app)
+    
+    # Configure CORS
+    cors_origins = os.environ.get('CORS_ORIGINS', '*')
+    if cors_origins != '*':
+        cors_origins = cors_origins.split(',')
+    
+    CORS(app, resources={
+        r"/*": {
+            "origins": cors_origins,
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]
+        }
+    })
     
     # Initialize MongoDB connection
     global mongo, db
@@ -85,6 +109,31 @@ def create_app(config_class=Config):
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(api_bp, url_prefix='/api')
+    
+    # JWT error handlers
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return {
+            'status': 'error',
+            'error': 'Token has expired',
+            'message': 'Please log in again to get a new token'
+        }, 401
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return {
+            'status': 'error',
+            'error': 'Invalid token',
+            'message': 'Token verification failed'
+        }, 401
+    
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error):
+        return {
+            'status': 'error',
+            'error': 'Authorization required',
+            'message': 'No JWT token provided'
+        }, 401
     
     @app.route('/')
     def index():

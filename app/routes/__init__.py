@@ -8,9 +8,6 @@ from app.routes.api.student import notifications_routes, announcement_routes, re
 from app.routes.api.company import company_routes
 from app.routes.api.search import search_routes
 
-# Import archive messages
-from app.archive import messages
-
 # Import new unified routes
 from app.routes import dashboard, profile
 
@@ -75,12 +72,6 @@ try:
 except AttributeError:
     print("Warning: recommendation_bp not found in recommendations_routes")
 
-# Register archived message routes
-try:
-    api_bp.register_blueprint(messages.message_bp, url_prefix='/messages')
-except AttributeError:
-    print("Warning: message_bp not found in messages")
-
 try:
     api_bp.register_blueprint(company_routes.company_bp, url_prefix='/company')
 except AttributeError:
@@ -124,12 +115,17 @@ def debug():
 def firebase_test():
     """Test route to verify Firebase connection."""
     from app.utils.firebase_setup import initialize_firebase, push_test_message
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     try:
+        logger.info("Firebase test endpoint called")
         # Initialize Firebase
         firebase_initialized = initialize_firebase()
         
         if not firebase_initialized:
+            logger.error("Firebase initialization failed")
             return jsonify({
                 'status': 'error',
                 'message': 'Firebase initialization failed'
@@ -139,17 +135,20 @@ def firebase_test():
         message_sent = push_test_message()
         
         if message_sent:
+            logger.info("Firebase test message sent successfully")
             return jsonify({
                 'status': 'success',
                 'message': 'Firebase test message sent successfully'
             }), 200
         else:
+            logger.error("Failed to send Firebase test message")
             return jsonify({
                 'status': 'error',
                 'message': 'Failed to send Firebase test message'
             }), 500
     
     except Exception as e:
+        logger.exception(f"Error in Firebase test endpoint: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
@@ -160,11 +159,16 @@ def firebase_test():
 def populate_dummy_data_route():
     """Route to populate the database with dummy data for testing."""
     from app.utils.dummy_data import populate_dummy_data
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Populate dummy data endpoint called")
     
     try:
         # Populate dummy data
         summary = populate_dummy_data()
         
+        logger.info(f"Dummy data populated successfully: {summary}")
         return jsonify({
             'status': 'success',
             'message': 'Dummy data populated successfully',
@@ -172,6 +176,7 @@ def populate_dummy_data_route():
         }), 200
     
     except Exception as e:
+        logger.exception(f"Error populating dummy data: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
