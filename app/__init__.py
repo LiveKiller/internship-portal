@@ -119,6 +119,11 @@ def create_app(config_class=Config):
     # Faculty routes
     from app.routes.api.faculty.dashboard_routes import faculty_dashboard_bp
     
+    # Use the unified dashboard route from routes.api instead of the dashboard module
+    from app.routes.api.dashboard_routes import unified_dashboard_bp
+    
+    # Do NOT import or register dashboard_bp from app.dashboard.routes to avoid duplicate routes with the same URL prefix
+    
     # Archive module for backward compatibility
     from app.archive.messages import messages_bp as archived_messages_bp
     
@@ -134,6 +139,9 @@ def create_app(config_class=Config):
     
     # Register faculty routes directly
     app.register_blueprint(faculty_dashboard_bp)  # URL prefix defined in the blueprint
+    
+    # Register unified dashboard route (supports both student and faculty roles)
+    app.register_blueprint(unified_dashboard_bp)  # URL prefix defined in the blueprint
     
     # Register archive routes for backward compatibility
     app.register_blueprint(archived_messages_bp)  # URL prefix defined in the blueprint
